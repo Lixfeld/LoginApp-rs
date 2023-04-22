@@ -1,3 +1,5 @@
+use regex::Regex;
+
 pub struct LoginApp {
     username: String,
     password: String,
@@ -38,15 +40,32 @@ impl eframe::App for LoginApp {
             ui.label("Username:");
             ui.text_edit_singleline(username);
 
+            let regex = Regex::new(r"^[A-Za-z0-9]*$").expect("Valid regex pattern");
+            let valid_username = username.len() >= 3 && regex.is_match(username);
+            let username_error = if username.len() < 3 {
+                "Username must be at least 3 chars."
+            } else {
+                "Username contains invalid characters."
+            };
+            ui.add_visible(!valid_username, egui::Label::new(username_error));
+
             ui.label("Password:");
             ui.text_edit_singleline(password);
+
+            let valid_password = password.len() >= 6;
+            ui.add_visible(
+                !valid_password,
+                egui::Label::new("Password must be at least 6 chars."),
+            );
 
             ui.label("Confirm password:");
             ui.text_edit_singleline(confirm_password);
 
-            let is_empty = username.is_empty() || password.is_empty();
             let is_match = password.clone() == confirm_password.clone();
-            ui.add_enabled(!is_empty && is_match, egui::Button::new("Sign up"));
+            ui.add_visible(!is_match, egui::Label::new("Passwords must match."));
+
+            let is_valid = valid_username && valid_password && is_match;
+            ui.add_enabled(is_valid, egui::Button::new("Sign up"));
         });
     }
 }

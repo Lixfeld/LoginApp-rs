@@ -1,3 +1,4 @@
+use egui::*;
 use regex::Regex;
 
 pub struct LoginApp {
@@ -36,7 +37,8 @@ impl eframe::App for LoginApp {
             confirm_password,
         } = self;
 
-        egui::CentralPanel::default().show(ctx, |ui| {
+        CentralPanel::default().show(ctx, |ui| {
+            // Username
             ui.label("Username:");
             ui.text_edit_singleline(username);
 
@@ -47,25 +49,30 @@ impl eframe::App for LoginApp {
             } else {
                 "Username contains invalid characters."
             };
-            ui.add_visible(!valid_username, egui::Label::new(username_error));
+            let username_error_text = RichText::new(username_error).color(Color32::RED);
+            ui.add_visible(!valid_username, Label::new(username_error_text));
 
+            // Password
             ui.label("Password:");
             ui.text_edit_singleline(password);
 
             let valid_password = password.len() >= 6;
-            ui.add_visible(
-                !valid_password,
-                egui::Label::new("Password must be at least 6 chars."),
-            );
+            let password_error_text =
+                RichText::new("Password must be at least 6 chars.").color(Color32::RED);
+            ui.add_visible(!valid_password, Label::new(password_error_text));
 
+            // Confirm Password
             ui.label("Confirm password:");
             ui.text_edit_singleline(confirm_password);
 
             let is_match = password.clone() == confirm_password.clone();
-            ui.add_visible(!is_match, egui::Label::new("Passwords must match."));
+            let confirm_password_error_text =
+                RichText::new("Passwords must match.").color(Color32::RED);
+            ui.add_visible(!is_match, Label::new(confirm_password_error_text));
 
+            // Sign up
             let is_valid = valid_username && valid_password && is_match;
-            ui.add_enabled(is_valid, egui::Button::new("Sign up"));
+            ui.add_enabled(is_valid, Button::new("Sign up"));
         });
     }
 }

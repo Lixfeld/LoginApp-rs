@@ -5,6 +5,7 @@ pub struct LoginApp {
     username: String,
     password: String,
     confirm_password: String,
+    dialog_open: bool,
 }
 
 impl Default for LoginApp {
@@ -13,6 +14,7 @@ impl Default for LoginApp {
             username: String::new(),
             password: String::new(),
             confirm_password: String::new(),
+            dialog_open: false,
         }
     }
 }
@@ -35,9 +37,29 @@ impl eframe::App for LoginApp {
             username,
             password,
             confirm_password,
+            dialog_open,
         } = self;
 
+        // Show Dialog
+        if *dialog_open {
+            let dialog_text = format!("User '{}' created successfully.", username);
+            Window::new("Dialog")
+                .title_bar(false)
+                .resizable(false)
+                .show(ctx, |ui| {
+                    ui.label(dialog_text);
+
+                    let ok_button = ui.button("OK");
+                    if ok_button.clicked() {
+                        self.dialog_open = false;
+                    }
+                });
+        }
+
         CentralPanel::default().show(ctx, |ui| {
+            // Disable panel in background
+            ui.set_enabled(!self.dialog_open);
+
             // Username
             ui.label("Username:");
             ui.text_edit_singleline(username);
@@ -72,7 +94,10 @@ impl eframe::App for LoginApp {
 
             // Sign up
             let is_valid = valid_username && valid_password && is_match;
-            ui.add_enabled(is_valid, Button::new("Sign up"));
+            let signup_button = ui.add_enabled(is_valid, Button::new("Sign up"));
+            if signup_button.clicked() {
+                self.dialog_open = true;
+            }
         });
     }
 }
